@@ -1,30 +1,31 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
+
+    private lateinit var catsViewModel: CatsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
+        catsViewModel = ViewModelProvider(
+            this,
+            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+        )[CatsViewModel::class.java]
+        catsViewModel.catsService = diContainer.service
+        view.viewModel = catsViewModel
 
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        catsViewModel.catsLiveData.observe(this) { cat ->
+            view.populate(cat)
         }
-        super.onStop()
+
+        catsViewModel.fetchCat()
     }
 }
