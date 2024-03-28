@@ -14,21 +14,27 @@ class CatsViewModel : ViewModel() {
     val catsLiveData = MutableLiveData<Result>()
 
     fun fetchCat() {
-        viewModelScope.launch(
-            CoroutineExceptionHandler { _, _ ->
-                catsLiveData.value = Result.Error
-                CrashMonitor.trackWarning()
-            }
-        ) {
-            val fact = async { catsService.getCatFact().first().id }
-            val imageUrl = async { catsService.getImage().first().url }
+        try {
+            viewModelScope.launch(
+                CoroutineExceptionHandler { _, _ ->
+                    catsLiveData.value = Result.Error
+                    CrashMonitor.trackWarning()
+                }
+            ) {
+                val fact = async { catsService.getCatFact().first().id }
+                val imageUrl = async { catsService.getImage().first().url }
 
-            catsLiveData.value = Success(
-                CatContainer(
-                    imageUrl = imageUrl.await(),
-                    fact = fact.await()
+                catsLiveData.value = Success(
+                    CatContainer(
+                        imageUrl = imageUrl.await(),
+                        fact = fact.await()
+                    )
                 )
-            )
+            }
+        } catch (e: Exception) {
+            catsLiveData.value = Result.Error
+            CrashMonitor.trackWarning()
+            throw IllegalStateException(e)
         }
     }
 

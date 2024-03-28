@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,8 +40,12 @@ class CatsPresenter(
             }
         } catch (e: SocketTimeoutException) {
             _catsView?.showToast(R.string.exception_socket_timeout)
-            throw IllegalStateException(e)
-        } catch (e: Exception) {
+            throw SocketTimeoutException()
+        } catch (e: CancellationException) {
+            _catsView?.showToast(e.message)
+            throw CancellationException()
+        }
+        catch (e: Exception) {
             _catsView?.showToast(e.message)
             CrashMonitor.trackWarning()
             throw IllegalStateException(e)
@@ -56,7 +61,7 @@ class CatsPresenter(
     }
 
     fun cancelJob() {
-        presenterScope.cancel(null)
+        presenterScope.cancel()
         Log.d("CANCEL", "coroutine cancelled")
     }
 }

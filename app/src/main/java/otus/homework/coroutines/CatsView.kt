@@ -7,6 +7,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.findViewTreeViewModelStoreOwner
+import androidx.lifecycle.get
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.CatsViewModel.Result
 
@@ -14,7 +17,9 @@ class CatsView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var viewModel: CatsViewModel? = null
+    private val viewModel by lazy {
+        findViewTreeViewModelStoreOwner()?.let { ViewModelProvider(it).get<CatsViewModel>() }
+    }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
